@@ -1,0 +1,13 @@
+﻿<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Welcome to Webflightdog - free air traffic data source</title>
+ </head>
+{% if states %}
+    <ul>
+    {% for state in states %}
+	<li><a href = "/webflightdog/{{ state.id }}/">{{ state.icao24 }}</a></li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No states are available.</p>
+{% endif %}	

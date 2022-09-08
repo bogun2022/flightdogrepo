@@ -1,0 +1,48 @@
+﻿{% extends 'main/base.html' %}
+{% block title %}Flightdog{% endblock %}
+{% block content %}
+<h1>Welcome to Flightdog - free source of airspace information!</h1>
+ <p>The current database represents sets of aircraft states updated in real-time mode. You may either see
+ the entire world aircraft database, or apply filtering parameters to see only aircraft that matches selected criteria:
+ min/max altitude, geo area, current status, etc.
+ Note: we provide services to registered users only.</p>
+	<p>{{ ip }}</p>
+	<p>{{ user }}</p>	
+  
+ <form action="/index/" method="POST">
+	{% csrf_token %}
+	{{ form }}
+
+    <input type="submit" formmethod = "POST" value="Apply filter">
+
+    {% if states %}
+ 		<ul>
+		{% for state in states %}
+			<li><a href = "/main/{{ state.id }}/">{{ state.icao24 }}</a></li>
+		{% endfor %}
+		</ul>
+	{% else %}
+		<p>No states are available.</p>
+	{% endif %}
+	
+</form>
+ 
+ 
+ 
+ 
+
+{% endblock %}
+
+
+<!doctype html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <title>Flightdog - free air traffic data source</title>
+ </head>
+ <canvas id="myCanvas" width="1200" height="100" style="border:1px solid #000000;"></canvas>
+ <body>
+	<h1>Welcome to Flightdog - free source of airspace information</h1>
+	
+</body>
+</html>
