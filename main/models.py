@@ -33,6 +33,7 @@ class State(models.Model):
     spi = models.CharField(max_length = 5)
     position_source = models.ForeignKey(Position_source, on_delete = models.CASCADE)
     category = models.ForeignKey(Category, on_delete = models.CASCADE)
+    db_update_num = models.IntegerField(default = 0)
 
     def __str__(self):
         str_aircraft = "Aircraft icao24: "+self.icao24+" callsign: "+self.callsign\
@@ -75,3 +76,4 @@ class State(models.Model):
 
 class global_param():
         db_update_frequence = models.IntegerField(default = 3600)
+        last_db_update = models.IntegerField(default = 0)

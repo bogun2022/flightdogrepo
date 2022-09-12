@@ -67,7 +67,23 @@ def index(request):
             txt = filter_attr(icao24,callsign,origin_country,longitude_min, longitude_max, latitude_min, latitude_max, baro_altitude_min,baro_altitude_max,geo_altitude_min,geo_altitude_max)
             if txt != '':
                 print()
-                states = State.objects.filter(**txt)           
+                states = State.objects.filter(**txt)
+
+            # Save user preferences
+            user_ip = ip
+            user_icao24 = form.cleaned_data['icao24']
+            user_origin_country = form.cleaned_data['icao24']
+            user_longitude_min = form.cleaned_data['longitude_min']
+            user_longitude_max = form.cleaned_data['longitude_max']    
+            user_latitude_min = form.cleaned_data['latitude_min']
+            user_latitude_max = form.cleaned_data['latitude_max']    
+            user_geo_altitude_min = form.cleaned_data['geo_altitude_min']
+            user_geo_altitude_max = form.cleaned_data['geo_altitude_max']
+            user_baro_altitude_min = form.cleaned_data['baro_altitude_min']
+            user_baro_altitude_max = form.cleaned_data['baro_altitude_max']    
+#            user_category = form.cleaned_data['category']
+#            form.save()
+
 #            return HttpResponseRedirect('/index/')
     else:
         txt = ''
