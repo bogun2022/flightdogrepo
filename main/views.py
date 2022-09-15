@@ -45,22 +45,18 @@ def index(request):
 
     states = State.objects.order_by('time_position')
     template = loader.get_template('main/index.html')
-    if request.method == 'POST':
+    if request.method == 'POST' and user.is_authenticated == True:
         form = StateFilterForm(request.POST)
         if form.is_valid():
             icao24 = form.cleaned_data['icao24']
             callsign = form.cleaned_data['callsign']
             origin_country = form.cleaned_data['origin_country']
-
             baro_altitude_min = form.cleaned_data['baro_altitude_min']
             baro_altitude_max = form.cleaned_data['baro_altitude_max']
-
             geo_altitude_min = form.cleaned_data['geo_altitude_min']
             geo_altitude_max = form.cleaned_data['geo_altitude_max']
-
             longitude_min = form.cleaned_data['longitude_min']
             longitude_max = form.cleaned_data['longitude_max']
-
             latitude_min = form.cleaned_data['latitude_min']
             latitude_max = form.cleaned_data['latitude_max']
             
@@ -70,7 +66,7 @@ def index(request):
                 states = State.objects.filter(**txt)
 
             # Save user preferences
-            user_ip = ip
+            user.user_ip = ip
             user_icao24 = form.cleaned_data['icao24']
             user_origin_country = form.cleaned_data['icao24']
             user_longitude_min = form.cleaned_data['longitude_min']
@@ -85,10 +81,12 @@ def index(request):
 #            form.save()
 
 #            return HttpResponseRedirect('/index/')
-    else:
+    elif user.is_authenticated == True:
         txt = ''
         form = StateFilterForm()
 #        return render (request, 'main/index.html', {'form':form})
+    else:
+        form = ""
 
     context = {
                'form':form,
@@ -107,6 +105,16 @@ def details(request, state_id):
     return render(request, 'main/details.html', {'state':state})
 
 def home(request):
+    if request.method == 'POST':
+        form = RegisterForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('/login')
+    else:
+        form = RegisterForm()
+    return render(request, 'registration/sign_up.html', {"form": form})
+
     return render(request, 'main/home.html')
 
 def sign_up(request):
@@ -114,7 +122,7 @@ def sign_up(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save()
-            login(request, user)
+#            login(request, user)
             return redirect('/login')
     else:
         form = RegisterForm()
