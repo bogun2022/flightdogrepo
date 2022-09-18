@@ -8,7 +8,6 @@ urlpatterns = [
 #    path('main/home', views.home, name = 'home'),  #From tutorial!!!
     path('index/', views.index, name = 'index'),
     path('main/<int:state_id>/', views.details, name = 'details'),
+    path('stat/', views.stat, name = 'stat'),    
     path('sign-up', views.sign_up, name = 'sign_up'),  #From tutorial!!!
 ]
-
-print(path('<int:state_id>/', views.details, name = 'details'))

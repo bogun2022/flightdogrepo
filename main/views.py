@@ -5,7 +5,7 @@ from .models import State
 from django.contrib.auth import login
 from django.contrib import messages
 
-from .forms import RegisterForm, StateFilterForm
+from .forms import RegisterForm, StateFilterForm, StatForm
 from django.contrib.auth import login, logout, authenticate
 
 from ipware import get_client_ip
@@ -33,66 +33,67 @@ def filter_attr(icao24,callsign,origin_country,lo_min,lo_max,la_min,la_max,ba_mi
 
 def index(request):
     user = request.user
-    ip, is_routable = get_client_ip(request)
-    if ip is None:
-        pass
-    else:
-        pass
-        if is_routable:
-            pass
-        else:
-            pass            
-
     states = State.objects.order_by('time_position')
     template = loader.get_template('main/index.html')
-    if request.method == 'POST' and user.is_authenticated == True:
-        form = StateFilterForm(request.POST)
-        if form.is_valid():
-            icao24 = form.cleaned_data['icao24']
-            callsign = form.cleaned_data['callsign']
-            origin_country = form.cleaned_data['origin_country']
-            baro_altitude_min = form.cleaned_data['baro_altitude_min']
-            baro_altitude_max = form.cleaned_data['baro_altitude_max']
-            geo_altitude_min = form.cleaned_data['geo_altitude_min']
-            geo_altitude_max = form.cleaned_data['geo_altitude_max']
-            longitude_min = form.cleaned_data['longitude_min']
-            longitude_max = form.cleaned_data['longitude_max']
-            latitude_min = form.cleaned_data['latitude_min']
-            latitude_max = form.cleaned_data['latitude_max']
+    init_data = {
+        'icao24':user.user_icao24,
+        'origin_country':user.user_origin_country,
+        'baro_altitude_min':user.user_baro_altitude_min,
+        'baro_altitude_max':user.user_baro_altitude_max,
+        'geo_altitude_min':user.user_geo_altitude_min,
+        'geo_altitude_max':user.user_geo_altitude_max,
+        'longitude_min':user.user_longitude_min,
+        'longitude_max':user.user_longitude_max,
+        'latitude_min':user.user_latitude_min,
+        'latitude_max':user.user_latitude_max,
+        }
+
+    if request.method == 'POST':
+        filter_form = StateFilterForm(request.POST, initial = init_data)
+        if filter_form.is_valid():
+            icao24 = filter_form.cleaned_data['icao24']
+            callsign = filter_form.cleaned_data['callsign']
+            origin_country = filter_form.cleaned_data['origin_country']
+            baro_altitude_min = filter_form.cleaned_data['baro_altitude_min']
+            baro_altitude_max = filter_form.cleaned_data['baro_altitude_max']
+            geo_altitude_min = filter_form.cleaned_data['geo_altitude_min']
+            geo_altitude_max = filter_form.cleaned_data['geo_altitude_max']
+            longitude_min = filter_form.cleaned_data['longitude_min']
+            longitude_max = filter_form.cleaned_data['longitude_max']
+            latitude_min = filter_form.cleaned_data['latitude_min']
+            latitude_max = filter_form.cleaned_data['latitude_max']
             
             txt = filter_attr(icao24,callsign,origin_country,longitude_min, longitude_max, latitude_min, latitude_max, baro_altitude_min,baro_altitude_max,geo_altitude_min,geo_altitude_max)
             if txt != '':
-                print()
                 states = State.objects.filter(**txt)
 
             # Save user preferences
-            user.user_ip = ip
-            user_icao24 = form.cleaned_data['icao24']
-            user_origin_country = form.cleaned_data['icao24']
-            user_longitude_min = form.cleaned_data['longitude_min']
-            user_longitude_max = form.cleaned_data['longitude_max']    
-            user_latitude_min = form.cleaned_data['latitude_min']
-            user_latitude_max = form.cleaned_data['latitude_max']    
-            user_geo_altitude_min = form.cleaned_data['geo_altitude_min']
-            user_geo_altitude_max = form.cleaned_data['geo_altitude_max']
-            user_baro_altitude_min = form.cleaned_data['baro_altitude_min']
-            user_baro_altitude_max = form.cleaned_data['baro_altitude_max']    
-#            user_category = form.cleaned_data['category']
-#            form.save()
+            user.user_ip = get_client_ip(request)
+            user.user_icao24 = filter_form.cleaned_data['icao24']
+            user.user_origin_country = filter_form.cleaned_data['origin_country']
+            user.user_longitude_min = filter_form.cleaned_data['longitude_min']
+            user.user_longitude_max = filter_form.cleaned_data['longitude_max']    
+            user.user_latitude_min = filter_form.cleaned_data['latitude_min']
+            user.user_latitude_max = filter_form.cleaned_data['latitude_max']    
+            user.user_geo_altitude_min = filter_form.cleaned_data['geo_altitude_min']
+            user.user_geo_altitude_max = filter_form.cleaned_data['geo_altitude_max']
+            user.user_baro_altitude_min = filter_form.cleaned_data['baro_altitude_min']
+            user.user_baro_altitude_max = filter_form.cleaned_data['baro_altitude_max']    
+#            user.user_category = filter_form.cleaned_data['category']
+            user.save()
 
 #            return HttpResponseRedirect('/index/')
-    elif user.is_authenticated == True:
-        txt = ''
-        form = StateFilterForm()
-#        return render (request, 'main/index.html', {'form':form})
     else:
-        form = ""
+        txt = ''
+#        form = StateFilterForm()
+        filter_form = StateFilterForm( initial = init_data)
+        
+
+#        return render (request, 'main/index.html', {'form':form})
 
     context = {
-               'form':form,
+               'filter_form':filter_form,
 #               'txt':txt,
-               'ip':ip,
-               'user':user,
                'states':states,
               }
       
@@ -103,6 +104,49 @@ def index(request):
 def details(request, state_id):
     state = get_object_or_404(State, pk = state_id)
     return render(request, 'main/details.html', {'state':state})
+
+def stat(request):
+    user = request.user
+    states = State.objects.order_by('time_position')
+    template = loader.get_template('main/stat.html')
+    if request.method == 'POST':
+        filter_form = StateFilterForm(request.POST)
+        stat_form = StatForm(request.POST)
+        if filter_form.is_valid():
+            icao24 = filter_form.cleaned_data['icao24']
+            callsign = filter_form.cleaned_data['callsign']
+            origin_country = filter_form.cleaned_data['origin_country']
+            baro_altitude_min = filter_form.cleaned_data['baro_altitude_min']
+            baro_altitude_max = filter_form.cleaned_data['baro_altitude_max']
+            geo_altitude_min = filter_form.cleaned_data['geo_altitude_min']
+            geo_altitude_max = filter_form.cleaned_data['geo_altitude_max']
+            longitude_min = filter_form.cleaned_data['longitude_min']
+            longitude_max = filter_form.cleaned_data['longitude_max']
+            latitude_min = filter_form.cleaned_data['latitude_min']
+            latitude_max = filter_form.cleaned_data['latitude_max']
+            
+            txt = filter_attr(icao24,callsign,origin_country,longitude_min, longitude_max, latitude_min, latitude_max, baro_altitude_min,baro_altitude_max,geo_altitude_min,geo_altitude_max)
+            if txt != '':
+                print()
+                states = State.objects.filter(**txt)
+
+            # Save user preferences
+
+#            return HttpResponseRedirect('/index/')
+    else:
+        txt = ''
+        filter_form = StateFilterForm()
+
+    context = {
+               'filter_form':filter_form,
+#               'txt':txt,
+               'user':user,
+               'states':states,
+              }
+      
+#    return HttpResponse(template.render(context, request))
+    return render(request, 'main/stat.html', context)    
+
 
 def home(request):
     if request.method == 'POST':
