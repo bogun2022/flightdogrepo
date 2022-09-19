@@ -1,11 +1,11 @@
 ﻿{% extends 'main/base.html' %}
 {% block title %}Flightdog{% endblock %}
 {% block content %}
-  
+
  <form action="/index/" method="POST">
 	{% csrf_token %}
-	{{ filter_form.as_table }}
 	{% if user.is_authenticated %}	
+		{{ filter_form.as_table }}
 		<input type="submit" formmethod = "POST" value="Apply filter">
 		{% if states %}
 			<ul>
