@@ -68,12 +68,7 @@ class State(models.Model):
 
         return full_str
 
-##class Custom_User(User):
-##    user_ip = User.CharField(max_length = 20)
-##    user_occupation = User.CharField(max_length = 30)
-##    class Meta:
-##        proxy - True
 
-class global_param():
+class Global_param():
         db_update_frequence = models.IntegerField(default = 3600)
         last_db_update = models.IntegerField(default = 0)

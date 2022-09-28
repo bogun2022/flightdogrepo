@@ -6,10 +6,14 @@ from django.contrib.auth import login
 from django.contrib.auth.models import AnonymousUser
 from django.contrib import messages
 
-from .forms import RegisterForm, StateFilterForm, StatForm
+from .forms import RegisterForm, StateFilterForm, StatFieldsForm, ChartsForm
 from django.contrib.auth import login, logout, authenticate
 
 from ipware import get_client_ip
+import matplotlib.pyplot as plt
+from . import osdb, statfun
+import io
+import urllib, base64
 
 # Create your views here.
 
@@ -128,7 +132,8 @@ def stat(request):
     template = loader.get_template('main/stat.html')
     if request.method == 'POST':
         filter_form = StateFilterForm(request.POST)
-        stat_form = StatForm(request.POST)
+        stat_fields_form = StatFieldsForm(request.POST)
+        charts_form = ChartsForm(request.POST)
         if filter_form.is_valid():
             icao24 = filter_form.cleaned_data['icao24']
             callsign = filter_form.cleaned_data['callsign']
@@ -144,21 +149,40 @@ def stat(request):
             
             txt = filter_attr(icao24,callsign,origin_country,longitude_min, longitude_max, latitude_min, latitude_max, baro_altitude_min,baro_altitude_max,geo_altitude_min,geo_altitude_max)
             if txt != '':
-                print()
-                states = State.objects.filter(**txt)
+                states = State.objects.filter(**txt).order_by('geo_altitude')
+            else:
+                states = ""
+            
+            speed_lst = []
+            geo_alt_lst = []
+            for state in states:
+                speed_lst.append(state.velocity)
+                geo_alt_lst.append(state.geo_altitude)
 
-            # Save user preferences
+            parameter1 = ""
+            parameter2 = ""
+            url = statfun.chart_by_par(states, parameter1, parameter2, date_from, date_to)
 
-#            return HttpResponseRedirect('/index/')
+#            return HttpResponseRedirect('/stat/')
     else:
         txt = ''
         filter_form = StateFilterForm()
-
+        stat_fields_form = StatFieldsForm()
+        charts_form = ChartsForm()
+        url = ""
+        geo_alt_lst = 0
+        speed_lst = 0        
+                       
     context = {
                'filter_form':filter_form,
+               'stat_fields_form':stat_fields_form,
+               'charts_form':charts_form,
 #               'txt':txt,
                'user':user,
                'states':states,
+               'data':url,
+               'geo_alt_lst':geo_alt_lst,
+               'speed_lst':speed_lst,               
               }
       
 #    return HttpResponse(template.render(context, request))

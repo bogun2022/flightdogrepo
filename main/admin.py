@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import State
 from .models import Position_source
 from .models import Category
+from .models import Global_param
 
 from django.contrib.admin.models import LogEntry, DELETION #Added for logging users activity
 from django.utils.html import escape   #Added for logging users activity

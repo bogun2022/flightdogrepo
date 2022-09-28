@@ -36,6 +36,12 @@ class StateFilterForm(forms.Form):
 #    category = forms.ForeignKey(label = 'Category', Category, on_delete = models.CASCADE, required = False)
 
 
-class StatForm(forms.Form):
+class StatFieldsForm(forms.Form):
     date_from = forms.DateField(label = 'From:')
     date_to = forms.DateField(label = 'to')
+    par1 = forms.CharField(label = 'Parameter 1')
+    par1 = forms.CharField(label = 'Parameter 2')    
+    
+
+class ChartsForm(forms.Form):
+    chart = forms.DateField(label = 'Chart: velocity at geo-altitudes')

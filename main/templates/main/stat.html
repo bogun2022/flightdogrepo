@@ -8,6 +8,17 @@
 	{{ filter_form.as_table }}
 	{% if user.is_authenticated %}	
 		<input type="submit" formmethod = "POST" value="Apply filter">
+		<h1>-------------------------------------------------------------------------</h1>
+		<h1>Data range</h1>
+		{{ stat_form.as_table }}
+		<input type="submit" formmethod = "POST" value="Velocity at altitude ranges">
+		<input type="submit" formmethod = "POST" value="Average air taffic congestion by countries">
+		<input type="submit" formmethod = "POST" value="Average air traffic congestion at daytimes">
+		<input type="submit" formmethod = "POST" value="Average air traffic congestion at altitude ranges">
+		<input type="submit" formmethod = "POST" value="Average vertical speed at altitude ranges">
+		<p>{{ geo_alt_lst }}</p>
+		<p>{{ speed_lst }}</p>
+		<img src = "data:image/png;base64,{{ data }}" alt = "Airspace data chart" height = "1000", width = "1000" >
 		{% if states %}
 			<ul>
 			{% for state in states %}
@@ -18,7 +29,6 @@
 			<p>No states are available.</p>
 		{% endif %}
 	{% endif %}
-
 	
 </form>
  
