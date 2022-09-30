@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import io
 import urllib, base64
 
-def chart_by_par(tab, par1, par2, date_from, date_to):
+def chart_vel_by_alt(tab, par1, par2, date_from, date_to):
     speed_lst = []
     geo_alt_lst = []
     for state in tab:
@@ -21,6 +21,22 @@ def chart_by_par(tab, par1, par2, date_from, date_to):
 
     return url
   
+def averave_cong_by_alt(tab, alt1, alt2, date_from, date_to):
+    speed_lst = []
+    geo_alt_lst = []
+    for state in tab:
+        speed_lst.append(state.velocity)
+        geo_alt_lst.append(state.geo_altitude)
+    plt.plot(geo_alt_lst, speed_lst)
+    fig = plt.gcf()
+    buf = io.BytesIO()
+    fig.savefig(buf, format = 'png')
+    buf.seek(0)
+    string = base64.b64encode(buf.read())
+    url = urllib.parse.quote(string)
+
+    return url
+
 
 def prepare_states_db(db_con):
     mycursor = db_con.cursor()

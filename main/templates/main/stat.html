@@ -9,16 +9,46 @@
 	{% if user.is_authenticated %}	
 		<input type="submit" formmethod = "POST" value="Apply filter">
 		<h1>-------------------------------------------------------------------------</h1>
-		<h1>Data range</h1>
-		{{ stat_form.as_table }}
+		<h1>Date range</h1>
+		{{ stat_fields_form.as_table }}
+		<h1>-------------------------------------------------------------------------</h1>
+		
+		<form action="/main/views.py">
+        <input type="text" name="TEXT_1">
+        <input type="text" name="TEXT_2">
+        <input type="submit">
+        </form>
+		
+		
+		<select id="select_stat_optio">
+		<option value="average_cong_by_alt">Average airspace congestion by altitude</option>
+		<option value="average_cong_by_dt">Average airspace congestion by daytime</option>
+		<option value="average_vel_by_alt">Average airplane velocity by altitude</option>
+		<option value="average_vertrate_by_alt">Average vertical rate by altitude</option>
+		<option value="countries_airborn_ratio">Different countries airfleet airborn ratio </option>
+		</select>
+		<h1>-------------------------------------------------------------------------</h1>		
+		<form action="/main/views.py" method = "POST" target = "_blank">
+		<select name = "select_stat_option">
+		<option value = "average_cong_by_alt" selected>Average airspace congestion by altitude</option>
+ 		<option value = "average_cong_by_dt" selected>Average airspace congestion by daytime</option>
+		</select>
+		<imput type = "submit" value = "Submit"/>
+		</form>
+		
 		<input type="submit" formmethod = "POST" value="Velocity at altitude ranges">
 		<input type="submit" formmethod = "POST" value="Average air taffic congestion by countries">
 		<input type="submit" formmethod = "POST" value="Average air traffic congestion at daytimes">
 		<input type="submit" formmethod = "POST" value="Average air traffic congestion at altitude ranges">
 		<input type="submit" formmethod = "POST" value="Average vertical speed at altitude ranges">
+
 		<p>{{ geo_alt_lst }}</p>
 		<p>{{ speed_lst }}</p>
-		<img src = "data:image/png;base64,{{ data }}" alt = "Airspace data chart" height = "1000", width = "1000" >
+		<p>{{ stat_opt }}</p>
+		<p>{{ text1 }}</p>
+		<p>{{ form }}</p>		
+
+		<img src = "data:image/png;base64,{{ data }}" alt = "Airspace data chart" height = "700", width = "1000" >
 		{% if states %}
 			<ul>
 			{% for state in states %}

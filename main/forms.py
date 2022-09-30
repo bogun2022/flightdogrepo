@@ -4,6 +4,7 @@ from accounts.forms import CustomUserCreationForm
 from accounts.forms import CustomUserChangeForm
 from django.contrib.auth.models import User
 from accounts.models import CustomUser
+import datetime
 
 class RegisterForm(CustomUserCreationForm):
     email = forms.EmailField(required = True)
@@ -37,10 +38,10 @@ class StateFilterForm(forms.Form):
 
 
 class StatFieldsForm(forms.Form):
-    date_from = forms.DateField(label = 'From:')
-    date_to = forms.DateField(label = 'to')
-    par1 = forms.CharField(label = 'Parameter 1')
-    par1 = forms.CharField(label = 'Parameter 2')    
+    date_from = forms.DateField(label = 'From:', initial = datetime.date.today())
+    date_to = forms.DateField(label = 'to', initial = datetime.date.today())
+#    par1 = forms.CharField(label = 'Parameter 1')
+#    par1 = forms.CharField(label = 'Parameter 2')    
     
 
 class ChartsForm(forms.Form):

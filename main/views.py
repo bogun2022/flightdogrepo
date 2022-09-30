@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 from . import osdb, statfun
 import io
 import urllib, base64
+import cgi
 
 # Create your views here.
 
@@ -134,7 +135,8 @@ def stat(request):
         filter_form = StateFilterForm(request.POST)
         stat_fields_form = StatFieldsForm(request.POST)
         charts_form = ChartsForm(request.POST)
-        if filter_form.is_valid():
+        fields = cgi.FieldStorage()
+        if filter_form.is_valid() and stat_fields_form.is_valid():
             icao24 = filter_form.cleaned_data['icao24']
             callsign = filter_form.cleaned_data['callsign']
             origin_country = filter_form.cleaned_data['origin_country']
@@ -146,12 +148,26 @@ def stat(request):
             longitude_max = filter_form.cleaned_data['longitude_max']
             latitude_min = filter_form.cleaned_data['latitude_min']
             latitude_max = filter_form.cleaned_data['latitude_max']
-            
+
+            date_from = stat_fields_form.cleaned_data['date_from']
+            date_to = stat_fields_form.cleaned_data['date_to']
+
             txt = filter_attr(icao24,callsign,origin_country,longitude_min, longitude_max, latitude_min, latitude_max, baro_altitude_min,baro_altitude_max,geo_altitude_min,geo_altitude_max)
             if txt != '':
                 states = State.objects.filter(**txt).order_by('geo_altitude')
             else:
                 states = ""
+
+            if fields.getvalue('select_stat_option'):
+                stat_opt = fields.getvalue('select_stat_option')
+            else:
+                print()
+                stat_opt = fields.getvalue('select_stat_option')                
+#                stat_opt = "Reading dropdown field is not working..."
+
+            form = cgi.FieldStorage()
+            text1 = form.getfirst("TEXT_1", "не задано")
+            text2 = form.getfirst("TEXT_2", "не задано")
             
             speed_lst = []
             geo_alt_lst = []
@@ -161,8 +177,11 @@ def stat(request):
 
             parameter1 = ""
             parameter2 = ""
-            url = statfun.chart_by_par(states, parameter1, parameter2, date_from, date_to)
-
+            if stat_opt == "average_cong_by_alt":
+                url = statfun.chart_vel_by_alt(states, parameter1, parameter2, date_from, date_to)
+            else:
+                url = statfun.chart_vel_by_alt(states, parameter1, parameter2, date_from, date_to)
+                
 #            return HttpResponseRedirect('/stat/')
     else:
         txt = ''
@@ -171,7 +190,17 @@ def stat(request):
         charts_form = ChartsForm()
         url = ""
         geo_alt_lst = 0
-        speed_lst = 0        
+        speed_lst = 0
+
+        fields = cgi.FieldStorage()
+        if fields.getvalue('select_stat_option'):
+            stat_opt = fields.getvalue('select_stat_option').value
+        else:
+            stat_opt = "Reading dropdown field is not working..."
+
+        form = cgi.FieldStorage()
+        text1 = form.getfirst("TEXT_1", "не задано")
+        text2 = form.getfirst("TEXT_2", "не задано")            
                        
     context = {
                'filter_form':filter_form,
@@ -182,7 +211,10 @@ def stat(request):
                'states':states,
                'data':url,
                'geo_alt_lst':geo_alt_lst,
-               'speed_lst':speed_lst,               
+               'speed_lst':speed_lst,
+               'stat_opt':stat_opt,
+               'text1':text1,
+               'form':form,
               }
       
 #    return HttpResponse(template.render(context, request))
