@@ -13,41 +13,24 @@
 		{{ stat_fields_form.as_table }}
 		<h1>-------------------------------------------------------------------------</h1>
 		
-		<form action="/main/views.py">
-        <input type="text" name="TEXT_1">
-        <input type="text" name="TEXT_2">
-        <input type="submit">
-        </form>
-		
-		
-		<select id="select_stat_optio">
-		<option value="average_cong_by_alt">Average airspace congestion by altitude</option>
-		<option value="average_cong_by_dt">Average airspace congestion by daytime</option>
-		<option value="average_vel_by_alt">Average airplane velocity by altitude</option>
-		<option value="average_vertrate_by_alt">Average vertical rate by altitude</option>
-		<option value="countries_airborn_ratio">Different countries airfleet airborn ratio </option>
+		<select name="select_stat_option">
+			<option value="average_cong_by_alt" selected="selected">Average airspace congestion by altitude</option>
+			<option value="average_cong_by_dt">Average airspace congestion by daytime</option>
+			<option value="average_vel_by_alt">Average airplane velocity by altitude</option>
+			<option value="average_vertrate_by_alt">Average vertical rate by altitude</option>
+			<option value="countries_airborn_ratio">Different countries airfleet airborn ratio </option>
 		</select>
-		<h1>-------------------------------------------------------------------------</h1>		
-		<form action="/main/views.py" method = "POST" target = "_blank">
-		<select name = "select_stat_option">
-		<option value = "average_cong_by_alt" selected>Average airspace congestion by altitude</option>
- 		<option value = "average_cong_by_dt" selected>Average airspace congestion by daytime</option>
-		</select>
-		<imput type = "submit" value = "Submit"/>
-		</form>
 		
-		<input type="submit" formmethod = "POST" value="Velocity at altitude ranges">
-		<input type="submit" formmethod = "POST" value="Average air taffic congestion by countries">
-		<input type="submit" formmethod = "POST" value="Average air traffic congestion at daytimes">
-		<input type="submit" formmethod = "POST" value="Average air traffic congestion at altitude ranges">
-		<input type="submit" formmethod = "POST" value="Average vertical speed at altitude ranges">
+		<input type="submit" formmethod = "POST" value="Calculate">
 
 		<p>{{ geo_alt_lst }}</p>
 		<p>{{ speed_lst }}</p>
-		<p>{{ stat_opt }}</p>
-		<p>{{ text1 }}</p>
-		<p>{{ form }}</p>		
-
+		<p>{{ stat_opt }}</p>		
+		<p>{{ stat_data }}</p>
+		<p>{{ date_from }}</p>
+		<p>{{ date_to }}</p>
+		<p>{{ txt }}</p>		
+		
 		<img src = "data:image/png;base64,{{ data }}" alt = "Airspace data chart" height = "700", width = "1000" >
 		{% if states %}
 			<ul>

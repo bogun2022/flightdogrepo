@@ -14,27 +14,10 @@ import matplotlib.pyplot as plt
 from . import osdb, statfun
 import io
 import urllib, base64
-import cgi
+import statistics as st
+import datetime
 
 # Create your views here.
-
-def filter_attr(icao24,callsign,origin_country,lo_min,lo_max,la_min,la_max,ba_min,ba_max,ga_min,ga_max):
-    arg_dict = {}
-
-    if icao24 != '':
-        arg_dict['icao24'] = icao24
-    if callsign != '':
-        arg_dict['callsign'] = callsign
-    if origin_country != '':
-        arg_dict['origin_country'] = origin_country
-
-    arg_dict['longitude__range'] = (lo_min, lo_max)
-    arg_dict['latitude__range'] = (la_min, la_max)
-
-    arg_dict['baro_altitude__range'] = (ba_min, ba_max)
-    arg_dict['geo_altitude__range'] = (ga_min, ga_max)
-    
-    return arg_dict
 
 
 def index(request):
@@ -69,8 +52,11 @@ def index(request):
             longitude_max = filter_form.cleaned_data['longitude_max']
             latitude_min = filter_form.cleaned_data['latitude_min']
             latitude_max = filter_form.cleaned_data['latitude_max']
+
+            date_from = int(0)
+            date_to = int(datetime.datetime.today().timestamp())
             
-            txt = filter_attr(icao24,callsign,origin_country,longitude_min, longitude_max, latitude_min, latitude_max, baro_altitude_min,baro_altitude_max,geo_altitude_min,geo_altitude_max)
+            txt = statfun.filter_attr(icao24,callsign,origin_country,0,date_to,longitude_min, longitude_max, latitude_min, latitude_max, baro_altitude_min,baro_altitude_max,geo_altitude_min,geo_altitude_max)
             if txt != '':
                 states = State.objects.filter(**txt)
             if user.is_authenticated == True:
@@ -114,7 +100,6 @@ def index(request):
 
     context = {
                'filter_form':filter_form,
-#               'txt':txt,
                'user':user,
                'states':states,
               }
@@ -135,7 +120,7 @@ def stat(request):
         filter_form = StateFilterForm(request.POST)
         stat_fields_form = StatFieldsForm(request.POST)
         charts_form = ChartsForm(request.POST)
-        fields = cgi.FieldStorage()
+
         if filter_form.is_valid() and stat_fields_form.is_valid():
             icao24 = filter_form.cleaned_data['icao24']
             callsign = filter_form.cleaned_data['callsign']
@@ -152,23 +137,32 @@ def stat(request):
             date_from = stat_fields_form.cleaned_data['date_from']
             date_to = stat_fields_form.cleaned_data['date_to']
 
-            txt = filter_attr(icao24,callsign,origin_country,longitude_min, longitude_max, latitude_min, latitude_max, baro_altitude_min,baro_altitude_max,geo_altitude_min,geo_altitude_max)
+            date_from = int(datetime.datetime.combine(date_from, datetime.time()).timestamp())
+            date_to = int(datetime.datetime.combine(date_to, datetime.time()).timestamp())
+
+            txt = statfun.filter_attr(icao24,callsign,origin_country,date_from,date_to,longitude_min, longitude_max, latitude_min, latitude_max, baro_altitude_min,baro_altitude_max,geo_altitude_min,geo_altitude_max)
             if txt != '':
-                states = State.objects.filter(**txt).order_by('geo_altitude')
+#                states = State.objects.filter(**txt).order_by('geo_altitude')
+                states = State.objects.filter(**txt)               
             else:
                 states = ""
 
-            if fields.getvalue('select_stat_option'):
-                stat_opt = fields.getvalue('select_stat_option')
+            stat_opt = request.POST.get("select_stat_option")
+#            stat_data = statfun.get_average_calc(stat_opt)
+            if stat_opt == "average_cong_by_alt":
+                stat_data = statfun.averave_cong_by_alt(states, txt, geo_altitude_min, geo_altitude_max, 1000, date_from, date_to)
+#                stat_data = "average_cong_by_alt"
+            elif stat_opt == "average_cong_by_dt":
+                stat_data = "average_cong_by_dt"
+            elif stat_opt == "average_vel_by_alt":
+                stat_data = "average_vel_by_alt"
+            elif stat_opt == "average_vertrate_by_alt":
+                stat_data = "average_vertrate_by_alt"
+            elif stat_opt == "countries_airborn_ratio":
+                stat_data = "countries_airborn_ratio"
             else:
-                print()
-                stat_opt = fields.getvalue('select_stat_option')                
-#                stat_opt = "Reading dropdown field is not working..."
+                stat_data = "Not selected"
 
-            form = cgi.FieldStorage()
-            text1 = form.getfirst("TEXT_1", "не задано")
-            text2 = form.getfirst("TEXT_2", "не задано")
-            
             speed_lst = []
             geo_alt_lst = []
             for state in states:
@@ -191,30 +185,25 @@ def stat(request):
         url = ""
         geo_alt_lst = 0
         speed_lst = 0
+        stat_opt = ""
+        stat_data = ""
+        date_from = ""
+        date_to = ""
 
-        fields = cgi.FieldStorage()
-        if fields.getvalue('select_stat_option'):
-            stat_opt = fields.getvalue('select_stat_option').value
-        else:
-            stat_opt = "Reading dropdown field is not working..."
-
-        form = cgi.FieldStorage()
-        text1 = form.getfirst("TEXT_1", "не задано")
-        text2 = form.getfirst("TEXT_2", "не задано")            
-                       
     context = {
                'filter_form':filter_form,
                'stat_fields_form':stat_fields_form,
                'charts_form':charts_form,
-#               'txt':txt,
                'user':user,
                'states':states,
                'data':url,
                'geo_alt_lst':geo_alt_lst,
                'speed_lst':speed_lst,
                'stat_opt':stat_opt,
-               'text1':text1,
-               'form':form,
+               'stat_data':stat_data,
+               'date_from':date_from,
+               'date_to':date_to,
+               'txt':txt
               }
       
 #    return HttpResponse(template.render(context, request))

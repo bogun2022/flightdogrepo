@@ -38,8 +38,8 @@ class StateFilterForm(forms.Form):
 
 
 class StatFieldsForm(forms.Form):
-    date_from = forms.DateField(label = 'From:', initial = datetime.date.today())
-    date_to = forms.DateField(label = 'to', initial = datetime.date.today())
+    date_from = forms.DateField(label = 'From:', initial = datetime.datetime.today())
+    date_to = forms.DateField(label = 'to', initial = datetime.datetime.today())
 #    par1 = forms.CharField(label = 'Parameter 1')
 #    par1 = forms.CharField(label = 'Parameter 2')    
     
