@@ -113,6 +113,12 @@ def details(request, state_id):
     return render(request, 'main/details.html', {'state':state})
 
 def stat(request):
+    par = ""
+    chart_data = ""
+    parameter1 = ""
+    parameter2 = ""
+    data = ""
+
     user = request.user
     states = State.objects.order_by('time_position')
     template = loader.get_template('main/stat.html')
@@ -136,55 +142,58 @@ def stat(request):
 
             date_from = stat_fields_form.cleaned_data['date_from']
             date_to = stat_fields_form.cleaned_data['date_to']
-
             date_from = int(datetime.datetime.combine(date_from, datetime.time()).timestamp())
             date_to = int(datetime.datetime.combine(date_to, datetime.time()).timestamp())
 
             txt = statfun.filter_attr(icao24,callsign,origin_country,date_from,date_to,longitude_min, longitude_max, latitude_min, latitude_max, baro_altitude_min,baro_altitude_max,geo_altitude_min,geo_altitude_max)
-            if txt != '':
-#                states = State.objects.filter(**txt).order_by('geo_altitude')
-                states = State.objects.filter(**txt)               
-            else:
-                states = ""
+#            states = State.objects.filter(**txt).order_by('geo_altitude')
+            states = State.objects.filter(**txt)               
 
+            vel_lst = []
+            vert_rate_lst = []
+            geo_alt_lst = []
+            for state in states:
+                vel_lst.append(state.velocity)
+                vert_rate_lst.append(state.vertical_rate)
+                geo_alt_lst.append(state.geo_altitude)
+            par = vel_lst
             stat_opt = request.POST.get("select_stat_option")
 #            stat_data = statfun.get_average_calc(stat_opt)
             if stat_opt == "average_cong_by_alt":
-                stat_data = statfun.averave_cong_by_alt(states, txt, geo_altitude_min, geo_altitude_max, 1000, date_from, date_to)
-#                stat_data = "average_cong_by_alt"
+                stat_data = statfun.average_cong_by_alt(states, geo_altitude_min, geo_altitude_max, 1000, date_from, date_to)
+#                chart_data = statfun.chart_by_par(states, parameter1, parameter2, date_from, date_to)
             elif stat_opt == "average_cong_by_dt":
-                stat_data = "average_cong_by_dt"
+                stat_data = statfun.average_cong_by_dt(states, date_from, date_to, 3600, date_from, date_to)
+#                chart_data = statfun.chart_by_par(states, parameter1, parameter2, date_from, date_to)
             elif stat_opt == "average_vel_by_alt":
-                stat_data = "average_vel_by_alt"
+                stat_data = statfun.average_vel_by_alt(states, geo_altitude_min, geo_altitude_max, 1000, date_from, date_to)
+                chart_data = statfun.chart_by_par(states, geo_alt_lst, vel_lst, date_from, date_to)
             elif stat_opt == "average_vertrate_by_alt":
-                stat_data = "average_vertrate_by_alt"
+                stat_data = statfun.average_vertrate_by_alt(states, geo_altitude_min, geo_altitude_max, 1000, date_from, date_to)
+                chart_data = statfun.chart_by_par(states, geo_alt_lst, vert_rate_lst, date_from, date_to)
             elif stat_opt == "countries_airborn_ratio":
-                stat_data = "countries_airborn_ratio"
+                stat_data = statfun.aircraft_by_countries(states, date_from, date_to)
+#                chart_data = statfun.chart_by_par(states, parameter1, parameter2, date_from, date_to)
             else:
                 stat_data = "Not selected"
+                chart_data = "not provided"
 
-            speed_lst = []
-            geo_alt_lst = []
-            for state in states:
-                speed_lst.append(state.velocity)
-                geo_alt_lst.append(state.geo_altitude)
-
-            parameter1 = ""
-            parameter2 = ""
-            if stat_opt == "average_cong_by_alt":
-                url = statfun.chart_vel_by_alt(states, parameter1, parameter2, date_from, date_to)
-            else:
-                url = statfun.chart_vel_by_alt(states, parameter1, parameter2, date_from, date_to)
+#            if stat_opt == "average_cong_by_alt":
+#            else:
+#                url = statfun.chart_vel_by_alt(states, parameter1, parameter2, date_from, date_to)
                 
 #            return HttpResponseRedirect('/stat/')
     else:
+        par = ""
         txt = ''
         filter_form = StateFilterForm()
         stat_fields_form = StatFieldsForm()
         charts_form = ChartsForm()
-        url = ""
+        chart_data = ""
+        data = ""
         geo_alt_lst = 0
-        speed_lst = 0
+        vel_lst = 0
+        vert_rate_lst = 0        
         stat_opt = ""
         stat_data = ""
         date_from = ""
@@ -196,16 +205,16 @@ def stat(request):
                'charts_form':charts_form,
                'user':user,
                'states':states,
-               'data':url,
                'geo_alt_lst':geo_alt_lst,
-               'speed_lst':speed_lst,
-               'stat_opt':stat_opt,
+               'vel_lst':vel_lst,
+               'vert_rate_lst':vert_rate_lst,               
                'stat_data':stat_data,
-               'date_from':date_from,
-               'date_to':date_to,
-               'txt':txt
+               'data':chart_data,
+               'txt':txt,
+               'par':par,
+               'vert_rate_lst':vert_rate_lst,
               }
-      
+    
 #    return HttpResponse(template.render(context, request))
     return render(request, 'main/stat.html', context)    
 

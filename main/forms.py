@@ -5,6 +5,7 @@ from accounts.forms import CustomUserChangeForm
 from django.contrib.auth.models import User
 from accounts.models import CustomUser
 import datetime
+import flightdog.settings
 
 class RegisterForm(CustomUserCreationForm):
     email = forms.EmailField(required = True)
@@ -38,10 +39,10 @@ class StateFilterForm(forms.Form):
 
 
 class StatFieldsForm(forms.Form):
+#    date_from = forms.DateField(label = 'From:', input_formats = flightdog.settings.DATE_INPUT_FORMATS, initial = datetime.datetime.today())
+#    date_to = forms.DateField(label = 'to', input_formats = flightdog.settings.DATE_INPUT_FORMATS, initial = datetime.datetime.today())
     date_from = forms.DateField(label = 'From:', initial = datetime.datetime.today())
     date_to = forms.DateField(label = 'to', initial = datetime.datetime.today())
-#    par1 = forms.CharField(label = 'Parameter 1')
-#    par1 = forms.CharField(label = 'Parameter 2')    
     
 
 class ChartsForm(forms.Form):

@@ -23,15 +23,17 @@
 		
 		<input type="submit" formmethod = "POST" value="Calculate">
 
-		<p>{{ geo_alt_lst }}</p>
-		<p>{{ speed_lst }}</p>
-		<p>{{ stat_opt }}</p>		
+		<p>{{ chart_data }}</p>
+		<p>{{ base64 }}</p>
 		<p>{{ stat_data }}</p>
-		<p>{{ date_from }}</p>
-		<p>{{ date_to }}</p>
-		<p>{{ txt }}</p>		
+		<p>{{ chart_data }}</p>
+		<p>{{ par }}</p>
+		<p>{{ vert_rate_lst }}</p>		
+
+		<p>{{ data }}</p>
 		
 		<img src = "data:image/png;base64,{{ data }}" alt = "Airspace data chart" height = "700", width = "1000" >
+		
 		{% if states %}
 			<ul>
 			{% for state in states %}

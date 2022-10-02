@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 import io
 import urllib, base64
 import statistics as st
+from django.db.models import Sum
 
 def filter_attr(icao24,callsign,origin_country,date_from,date_to,lo_min,lo_max,la_min,la_max,ba_min,ba_max,ga_min,ga_max):
     arg_dict = {}
-
     if icao24 != '':
         arg_dict['icao24'] = icao24
     if callsign != '':
@@ -17,15 +17,11 @@ def filter_attr(icao24,callsign,origin_country,date_from,date_to,lo_min,lo_max,l
     if origin_country != '':
         arg_dict['origin_country'] = origin_country
     arg_dict['time_position__range'] = origin_country
-
     arg_dict['longitude__range'] = (lo_min, lo_max)
     arg_dict['latitude__range'] = (la_min, la_max)
-
     arg_dict['baro_altitude__range'] = (ba_min, ba_max)
     arg_dict['geo_altitude__range'] = (ga_min, ga_max)
-
     arg_dict['time_position__range'] = (int(date_from), int(date_to))
-        
     return arg_dict
 
 def filter_attr_txt(icao24,callsign,origin_country,date_from,date_to,lo_min,lo_max,la_min,la_max,ba_min,ba_max,ga_min,ga_max):
@@ -88,35 +84,29 @@ def last_step(par_min, par_max, step):
     elif par_max < step:
         print()
         
-        
-
-def chart_vel_by_alt(tab, par1, par2, date_from, date_to):
-    speed_lst = []
-    geo_alt_lst = []
-    for state in tab:
-        speed_lst.append(state.velocity)
-        geo_alt_lst.append(state.geo_altitude)
-    plt.plot(geo_alt_lst, speed_lst)
+def chart_by_par(tab, par1, par2, date_from, date_to):
+##    speed_lst = []
+##    geo_alt_lst = []
+##    for state in tab:
+##        speed_lst.append(state.velocity)
+##        geo_alt_lst.append(state.geo_altitude)
+    plt.plot(par1, par2)
     fig = plt.gcf()
     buf = io.BytesIO()
     fig.savefig(buf, format = 'png')
     buf.seek(0)
     string = base64.b64encode(buf.read())
     url = urllib.parse.quote(string)
-
+#    url.show()
     return url
   
-def averave_cong_by_alt(tab, attr_lst, alt_min, alt_max, step, date_from, date_to):
+def average_cong_by_alt(tab, alt_min, alt_max, step, date_from, date_to):
     stat_data = ""
     total_airplanes = 0
     ranges = get_ranges(alt_min, alt_max, step)
     for n in ranges:
         a_min = n[0]
         a_max = n[1]
-#        attr_lst[11] = a_min
-#        attr_lst[12] = a_max
-#        states = tab.objects.filter(**attr_lst)
-#        states = tab.filter(**attr_lst)
         states = tab.filter(geo_altitude__range = ((a_min, a_max)))
         airplanes = states.all().count()
         total_airplanes += airplanes
@@ -124,22 +114,82 @@ def averave_cong_by_alt(tab, attr_lst, alt_min, alt_max, step, date_from, date_t
     stat_data += " Total aircraft: " + str(total_airplanes)
     return stat_data
 
-        
-        
-##    speed_lst = []
-##    geo_alt_lst = []
-##    for state in tab:
-##        speed_lst.append(state.velocity)
-##        geo_alt_lst.append(state.geo_altitude)
-##    plt.plot(geo_alt_lst, speed_lst)
-##    fig = plt.gcf()
-##    buf = io.BytesIO()
-##    fig.savefig(buf, format = 'png')
-##    buf.seek(0)
-##    string = base64.b64encode(buf.read())
-##    url = urllib.parse.quote(string)
+def average_cong_by_dt(tab, dt_from, dt_to, step, date_from, date_to):
+    stat_data = ""
+    total_airplanes = 0
+    ranges = get_ranges(dt_from, dt_to, step)
+    for n in ranges:
+        time_from = n[0]
+        time_to = n[1]
+        states = tab.filter(time_position__range = ((time_from, time_to)))
+        airplanes = states.all().count()
+        total_airplanes += airplanes
+        tf = datetime.datetime.fromtimestamp(time_from).strftime("%A, %B %d, %Y %I:%M:%S")
+        tt = datetime.datetime.fromtimestamp(time_to).strftime("%A, %B %d, %Y %I:%M:%S")
+#        stat_data += "Time from " + str(tf) + " to " + str(tt) + ": average congestion is: " + str(airplanes) + " aircraft carriers "
+        stat_data += " " + str(airplanes) + " aircraft carriers "
+    stat_data += " Total aircraft: " + str(total_airplanes)
+    return stat_data
 
-    return url
+
+def average_vel_by_alt(tab, alt_min, alt_max, step, date_from, date_to):
+    stat_data = ""
+    ranges = get_ranges(alt_min, alt_max, step)
+    for n in ranges:
+        a_min = n[0]
+        a_max = n[1]
+        states = tab.filter(geo_altitude__range = ((a_min, a_max)))
+        vel_lst = []
+        for state in states:
+            vel_lst.append(state.velocity)
+        if vel_lst != []:
+            average = round(st.mean(vel_lst),2)
+        else:
+            average = 0
+        stat_data += "Geo_altitude from " + str(a_min) + "m to " + str(a_max) + "m: average velocity is: " + str(average) + "m/s "
+    return stat_data
+
+def average_vertrate_by_alt(tab, alt_min, alt_max, step, date_from, date_to):
+    stat_data = ""
+    ranges = get_ranges(alt_min, alt_max, step)
+    for n in ranges:
+        a_min = n[0]
+        a_max = n[1]
+        states = tab.filter(geo_altitude__range = ((a_min, a_max)))
+        vel_lst = []
+        for state in states:
+            vel_lst.append(state.vertical_rate)
+        if vel_lst != []:
+            average = round(st.mean(vel_lst),2)
+        else:
+            average = 0
+        stat_data += "Geo_altitude from " + str(a_min) + "m to " + str(a_max) + "m: average vertical rate is: " + str(average) + "m/s "
+    return stat_data
+
+def aircraft_by_countries(tab, date_from, date_to):
+    lst = []
+    stat_data = ""
+    cur_country = ""
+    cur_countries = 0
+    total_countries = 0
+    states = tab.order_by('origin_country')
+    for state in states:
+        if cur_countries == 0:
+            cur_country = state.origin_country
+            cur_countries += 1
+            stat_data += str(cur_country) + ": "
+        elif state.origin_country == cur_country:
+            cur_countries += 1
+        else:
+            stat_data += str(int(cur_countries)) + " "
+            cur_country = state.origin_country
+            stat_data += str(cur_country) + ": "
+            cur_countries = 1
+        total_countries += 1
+    stat_data += " Total countries: " + str(int(total_countries))
+    return stat_data                              
+
+
 
 def main():
     a = 3
@@ -149,17 +199,6 @@ def main():
     e = st.mean(d)
     print("Mean value is:")
     print(e)
-
-def main1():
-    ranges = get_ranges(2000, 6500, 1000)
-    for n in ranges:
-        a_min = n[0]
-        a_max = n[1]
-        print (a_min," ", a_max)
-        d = averave_cong_by_alt(tab, alt_min, alt_max, step, date_from, date_to)
-        print
-
-#main1()
 
 d = datetime.datetime.fromtimestamp(1659775829).strftime('%Y-%m-%d %H:%M:%S')
 print(d)
